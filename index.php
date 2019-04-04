@@ -1,9 +1,15 @@
 <?php
 
+    /**
+     * Configuration
+     */
     $apiUrl = 'http://api.nbp.pl/api/cenyzlota/%s/%s/';
 
     $toInvest = array_key_exists('invest', $_GET) && is_numeric($_GET['invest']) ? $_GET['invest'] : 600000;
 
+    /**
+     * Collect gold price data from API
+     */
     $stocks = [];
 
     $dates['from'] = strtotime('-5 years');
@@ -58,6 +64,7 @@
     reset($stocks);
 
     /**
+     * Get monotonicities of gold price array
      * Monotonicity structure:
      * 0 - signum
      * 1 - delta
@@ -95,11 +102,17 @@
         }
     }
 
+    /**
+     * Split arrays of monotonicities to positive and negative array
+     */
     $negativeMonotonicities = array_filter($monotonicities, function($monotonicity) { return ($monotonicity[0] == -1); });
     $positiveMonotonicities = array_filter($monotonicities, function($monotonicity) { return ($monotonicity[0] == 1); });
 
     $deltas = [];
 
+    /**
+     * Get available investments in gold
+     */
     foreach($negativeMonotonicities as $nMonotonicity) {
         $min = $nMonotonicity[2];
         $max = $nMonotonicity[3];
@@ -116,8 +129,14 @@
         $deltas[] = [$min, $max, $max - $min, $from, $to];
     }
 
+    /**
+     * Sort investments in gold DESC
+     */
     usort($deltas, function($a, $b) { return $b[2] - $a[2]; });
 
+    /**
+     * Get first (best) investment i ngold
+     */
     $delta = $deltas[0];
 
     $bought = $toInvest / $delta[0];
